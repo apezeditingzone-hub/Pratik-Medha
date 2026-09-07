@@ -61,7 +61,7 @@ export const BootScreen: React.FC<BootScreenProps> = ({
     setIsTransitioning(true);
     setTimeout(() => {
       onComplete();
-    }, 700);
+    }, 450);
   };
 
   const handleSkip = () => {

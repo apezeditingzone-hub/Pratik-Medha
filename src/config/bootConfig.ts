@@ -8,7 +8,7 @@ export interface BootConfiguration {
 
 export const BOOT_CONFIG: BootConfiguration = {
   BOOT_ENABLED: true,
-  BOOT_DURATION: 5000,
+  BOOT_DURATION: 2200, // Faster, snappier loading time (~2.2s)
   SHOW_EVERY_VISIT: true,
   VOICE_ENABLED_BY_DEFAULT: false,
   PARTICLE_COUNT: 350,
