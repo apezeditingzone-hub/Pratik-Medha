@@ -79,49 +79,221 @@
     });
   }
 
-  // ====== PRELOADER ======
+  // ====== J.A.R.V.I.S. AUDIO SYNTHESIZER (Web Audio API) ======
+  class JarvisAudio {
+    constructor() {
+      this.ctx = null;
+      this.enabled = true;
+    }
+
+    init() {
+      if (!this.ctx && (window.AudioContext || window.webkitAudioContext)) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    playTone(freq, type, duration, gainVal = 0.05) {
+      if (!this.enabled) return;
+      try {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      } catch (e) {
+        // Ignore audio errors on restricted autoplay
+      }
+    }
+
+    playChirp(freq = 880) {
+      this.playTone(freq, 'sine', 0.08, 0.04);
+    }
+
+    playSuccessChime() {
+      if (!this.enabled) return;
+      try {
+        this.init();
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+          setTimeout(() => {
+            this.playTone(freq, 'triangle', 0.35, 0.08);
+          }, i * 90);
+        });
+      } catch (e) {}
+    }
+  }
+
+  const jarvisAudio = new JarvisAudio();
+
+  // ====== J.A.R.V.I.S. PRELOADER & ACTIVATION ======
   function initPreloader() {
     const preloader = document.getElementById('preloader');
+    if (!preloader) return;
+
     const preloaderNumber = document.getElementById('preloader-number');
+    const progressBar = document.getElementById('jarvis-progress-bar');
+    const terminalText = document.getElementById('terminal-text');
+    const overrideBtn = document.getElementById('jarvis-override-btn');
+    const audioBtn = document.getElementById('jarvis-audio-btn');
+    const audioIcon = document.getElementById('jarvis-audio-icon');
     const curtain = preloader.querySelector('.preloader__curtain');
+    const reactor = document.getElementById('jarvis-reactor');
+    const coreStatus = document.getElementById('jarvis-core-stat');
 
-    const tl = gsap.timeline({
-      onComplete: () => {
-        preloader.style.display = 'none';
-        document.body.style.overflow = '';
-        initScrollAnimations();
-      }
-    });
+    // Diagnostic sequence steps
+    const logs = [
+      { pct: 0, text: 'INITIATING J.A.R.V.I.S. NEURAL SYSTEM v7.4...' },
+      { pct: 20, text: 'CONNECTING TO STARK QUANTUM MATRIX [OK]' },
+      { pct: 45, text: 'CALIBRATING ARC REACTOR & HOLOGRAPHIC HUD...' },
+      { pct: 70, text: 'BIOMETRIC LINK VERIFIED: PRATIK MEDHA (DEV)...' },
+      { pct: 90, text: 'ALL MODULES OPTIMIZED. COMPILING INTERFACE...' },
+      { pct: 100, text: 'SYSTEMS 100% OPERATIONAL. WELCOME, SIR.' }
+    ];
 
-    // Prevent scroll during preloader
+    let currentLogIndex = -1;
+    let isCompleted = false;
+
+    // Prevent scrolling while activating
     document.body.style.overflow = 'hidden';
 
-    // Count up 0 to 100
-    tl.to({ val: 0 }, {
+    // Sound button toggle
+    if (audioBtn) {
+      audioBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        jarvisAudio.init();
+        jarvisAudio.enabled = !jarvisAudio.enabled;
+        if (audioIcon) {
+          audioIcon.textContent = jarvisAudio.enabled ? '🔊 AUDIO: ON' : '🔇 AUDIO: OFF';
+        }
+        if (jarvisAudio.enabled) {
+          jarvisAudio.playChirp(1200);
+        }
+      });
+    }
+
+    // Holographic Parallax on mouse movement
+    const onMouseMove = (e) => {
+      if (!reactor || isCompleted) return;
+      const { innerWidth, innerHeight } = window;
+      const x = (e.clientX / innerWidth - 0.5) * 20; // -10 to +10 deg
+      const y = (e.clientY / innerHeight - 0.5) * -20;
+      gsap.to(reactor, {
+        rotationY: x,
+        rotationX: y,
+        duration: 0.6,
+        ease: 'power1.out',
+        transformPerspective: 800,
+        transformOrigin: 'center center'
+      });
+    };
+    window.addEventListener('mousemove', onMouseMove);
+
+    // Terminal typewriter log function
+    function updateTerminalLog(msg) {
+      if (!terminalText) return;
+      terminalText.textContent = msg;
+      jarvisAudio.playChirp(900 + Math.random() * 400);
+    }
+
+    // Complete transition out
+    const finishActivation = () => {
+      if (isCompleted) return;
+      isCompleted = true;
+      window.removeEventListener('mousemove', onMouseMove);
+
+      if (coreStatus) {
+        coreStatus.textContent = 'ONLINE // ACTIVE';
+        coreStatus.style.color = '#00f0ff';
+      }
+
+      jarvisAudio.playSuccessChime();
+
+      // Holographic Flash & Dispersal Exit
+      const exitTl = gsap.timeline({
+        onComplete: () => {
+          preloader.style.display = 'none';
+          document.body.style.overflow = '';
+          initScrollAnimations();
+        }
+      });
+
+      if (curtain) {
+        exitTl.to(curtain, {
+          opacity: 0.9,
+          duration: 0.35,
+          ease: 'power2.in'
+        });
+      }
+
+      exitTl.to(preloader, {
+        opacity: 0,
+        scale: 1.05,
+        filter: 'blur(8px)',
+        duration: 0.5,
+        ease: 'power3.inOut'
+      }, '-=0.15');
+
+      // Kick off hero animations smoothly
+      exitTl.add(() => initHeroAnimation(), '-=0.2');
+    };
+
+    // Main GSAP Timeline for J.A.R.V.I.S. sequence
+    const tl = gsap.timeline({
+      onComplete: finishActivation
+    });
+
+    const progressObj = { val: 0 };
+
+    tl.to(progressObj, {
       val: 100,
-      duration: 2,
+      duration: 2.6,
       ease: 'power2.inOut',
       onUpdate: function() {
-        preloaderNumber.textContent = Math.round(this.targets()[0].val);
+        const currentVal = Math.round(progressObj.val);
+        if (preloaderNumber) {
+          preloaderNumber.textContent = currentVal < 10 ? '0' + currentVal : currentVal;
+        }
+        if (progressBar) {
+          progressBar.style.width = currentVal + '%';
+        }
+
+        // Check diagnostic step
+        for (let i = logs.length - 1; i >= 0; i--) {
+          if (currentVal >= logs[i].pct && currentLogIndex < i) {
+            currentLogIndex = i;
+            updateTerminalLog(logs[i].text);
+            break;
+          }
+        }
       }
     });
 
-    // Curtain rise
-    tl.to(curtain, {
-      height: '100%',
-      duration: 0.8,
-      ease: 'power4.inOut',
-    }, '-=0.3');
+    // Hold at 100% briefly for "Welcome, Sir" impact
+    tl.to({}, { duration: 0.4 });
 
-    // Fade out preloader
-    tl.to(preloader, {
-      opacity: 0,
-      duration: 0.4,
-      ease: 'power2.out',
-    });
+    // Override / Skip button action
+    if (overrideBtn) {
+      overrideBtn.addEventListener('click', () => {
+        jarvisAudio.init();
+        tl.progress(1);
+      });
+    }
 
-    // Animate hero elements in
-    tl.add(() => initHeroAnimation(), '-=0.2');
+    // Try starting subtle boot sound on user click/interaction
+    document.addEventListener('click', () => jarvisAudio.init(), { once: true });
+    document.addEventListener('keydown', () => jarvisAudio.init(), { once: true });
   }
 
   // ====== HERO ANIMATION ======
