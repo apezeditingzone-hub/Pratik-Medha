@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Code2,
   Sparkles,
@@ -14,6 +14,8 @@ import {
   RotateCcw,
   Smartphone,
   ChevronDown,
+  Menu,
+  X,
 } from 'lucide-react';
 
 interface PortfolioProps {
@@ -23,6 +25,39 @@ interface PortfolioProps {
 export const Portfolio: React.FC<PortfolioProps> = ({ onReplayBoot }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'flutter' | 'web' | 'ai'>('all');
   const [contactStatus, setContactStatus] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('hero');
+
+  const navLinks = [
+    { name: '01. ABOUT', href: '#about', id: 'about' },
+    { name: '02. WORK', href: '#work', id: 'work' },
+    { name: '03. SKILLS', href: '#skills', id: 'skills' },
+    { name: '04. EXPERIENCE', href: '#experience', id: 'experience' },
+    { name: '05. CONTACT', href: '#contact', id: 'contact' },
+  ];
+
+  // Active section observer on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['hero', 'about', 'work', 'skills', 'experience', 'contact'];
+      const scrollPos = window.scrollY + 200;
+
+      for (const section of sections) {
+        const el = document.getElementById(section);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const projects = [
     {
@@ -92,47 +127,154 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onReplayBoot }) => {
       <div className="fixed inset-0 bg-[linear-gradient(to_right,rgba(0,240,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,240,255,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyber-cyan/5 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* ============ NAVIGATION ============ */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-cyber-dark/80 backdrop-blur-lg border-b border-cyber-border/40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <a href="#hero" className="flex items-center gap-2 group">
-            <span className="w-8 h-8 rounded border border-cyber-cyan/50 bg-cyber-cyan/10 flex items-center justify-center font-display font-black text-cyber-cyan text-sm group-hover:shadow-[0_0_12px_#00f0ff] transition-all">
-              PM
-            </span>
-            <div className="flex flex-col">
-              <span className="font-display font-bold text-sm tracking-wider">PRATIK MEDHA</span>
-              <span className="font-mono text-[9px] text-cyber-cyan tracking-widest">NEURAL.OS // ONLINE</span>
-            </div>
-          </a>
+      {/* ============ SOODACODE SIMPLE NAVIGATION BAR ============ */}
+      <header id="masthead" className="site-header fixed top-0 left-0 right-0 z-40 bg-cyber-dark/85 backdrop-blur-xl border-b border-cyber-border/40 transition-all duration-300">
+        <div className="header_nav max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          
+          {/* Site Branding */}
+          <div className="site-branding">
+            <a href="#hero" className="flex items-center gap-2.5 group">
+              <span className="w-8 h-8 rounded border border-cyber-cyan/60 bg-cyber-cyan/15 flex items-center justify-center font-display font-black text-cyber-cyan text-sm group-hover:shadow-[0_0_15px_#00f0ff] transition-all">
+                PM
+              </span>
+              <div className="flex flex-col">
+                <span className="font-display font-bold text-sm tracking-wider text-white group-hover:text-cyber-cyan transition-colors">
+                  <span className="text-cyber-cyan">PRATIK</span> MEDHA
+                </span>
+                <span className="font-mono text-[9px] text-gray-400 tracking-widest">
+                  NEURAL.OS // v2.4
+                </span>
+              </div>
+            </a>
+          </div>
 
-          <nav className="hidden md:flex items-center gap-6 font-mono text-xs">
-            <a href="#about" className="text-gray-300 hover:text-cyber-cyan transition-colors">01. ABOUT</a>
-            <a href="#work" className="text-gray-300 hover:text-cyber-cyan transition-colors">02. WORK</a>
-            <a href="#skills" className="text-gray-300 hover:text-cyber-cyan transition-colors">03. SKILLS</a>
-            <a href="#experience" className="text-gray-300 hover:text-cyber-cyan transition-colors">04. EXPERIENCE</a>
-            <a href="#contact" className="text-gray-300 hover:text-cyber-cyan transition-colors">05. CONTACT</a>
+          {/* Desktop Main Navigation */}
+          <nav id="site-navigation" className="main-navigation hidden lg:flex items-center gap-8">
+            <div className="menu-primary-container">
+              <ul id="primary-menu" className="menu flex items-center gap-7 font-mono text-xs tracking-wider">
+                {navLinks.map((link) => {
+                  const isActive = activeSection === link.id;
+                  return (
+                    <li key={link.id} className="relative group py-1">
+                      <a
+                        href={link.href}
+                        className={`transition-colors duration-200 uppercase font-semibold ${
+                          isActive
+                            ? 'text-cyber-cyan drop-shadow-[0_0_8px_#00f0ff]'
+                            : 'text-gray-300 hover:text-white'
+                        }`}
+                      >
+                        {link.name}
+                      </a>
+                      
+                      {/* Active / Hover Sliding Underline */}
+                      {isActive ? (
+                        <motion.div
+                          layoutId="nav-active-pill"
+                          className="absolute -bottom-1 left-0 right-0 h-[2px] bg-cyber-cyan shadow-[0_0_8px_#00f0ff] rounded-full"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                        />
+                      ) : (
+                        <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-cyber-cyan scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left rounded-full opacity-60" />
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            {/* Right Action Buttons */}
+            <div className="flex items-center gap-3">
+              {onReplayBoot && (
+                <button
+                  onClick={onReplayBoot}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-cyber-panel/80 border border-cyber-border text-xs font-mono text-cyber-cyan hover:bg-cyber-cyan/15 hover:shadow-[0_0_12px_rgba(0,240,255,0.4)] transition-all"
+                  title="Replay AI Boot Sequence"
+                >
+                  <RotateCcw size={13} />
+                  <span>REPLAY AI BOOT</span>
+                </button>
+              )}
+
+              <a
+                href="#contact"
+                className="menu-button px-4 py-2 rounded-md bg-cyber-cyan text-black font-mono font-bold text-xs hover:bg-white hover:shadow-[0_0_18px_rgba(0,240,255,0.7)] transition-all tracking-wider uppercase flex items-center gap-1.5"
+              >
+                <span>LET'S TALK</span>
+                <ArrowUpRight size={13} />
+              </a>
+            </div>
           </nav>
 
-          <div className="flex items-center gap-3">
+          {/* Mobile Menu Button Toggle */}
+          <div className="toggle-menu flex lg:hidden items-center gap-2">
             {onReplayBoot && (
               <button
                 onClick={onReplayBoot}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-cyber-panel/80 border border-cyber-border text-xs font-mono text-cyber-cyan hover:bg-cyber-cyan/15 hover:shadow-[0_0_12px_rgba(0,240,255,0.4)] transition-all"
-                title="Replay AI Boot Sequence"
+                className="p-2 rounded bg-cyber-panel/80 border border-cyber-border text-cyber-cyan hover:bg-cyber-cyan/15 transition-all text-xs"
+                title="Replay AI Boot"
+                aria-label="Replay AI Boot"
               >
-                <RotateCcw size={13} />
-                <span className="hidden sm:inline">REPLAY AI BOOT</span>
+                <RotateCcw size={15} />
               </button>
             )}
 
-            <a
-              href="#contact"
-              className="px-3.5 py-1.5 rounded bg-cyber-cyan text-black font-mono font-bold text-xs hover:bg-white transition-all shadow-[0_0_15px_rgba(0,240,255,0.4)]"
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-md bg-cyber-panel border border-cyber-border text-cyber-cyan hover:bg-cyber-cyan/10 transition-colors"
+              aria-label="Toggle navigation menu"
+              aria-expanded={isMobileMenuOpen}
             >
-              INITIALIZE CONTACT
-            </a>
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Dropdown Drawer */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              className="lg:hidden border-t border-cyber-border/40 bg-cyber-dark/95 backdrop-blur-2xl px-6 py-5 shadow-[0_15px_30px_rgba(0,0,0,0.8)] overflow-hidden"
+            >
+              <ul className="flex flex-col gap-4 font-mono text-sm">
+                {navLinks.map((link) => {
+                  const isActive = activeSection === link.id;
+                  return (
+                    <li key={link.id}>
+                      <a
+                        href={link.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center justify-between py-2 border-b border-cyber-border/20 transition-colors ${
+                          isActive
+                            ? 'text-cyber-cyan font-bold drop-shadow-[0_0_8px_#00f0ff]'
+                            : 'text-gray-300 hover:text-white'
+                        }`}
+                      >
+                        <span>{link.name}</span>
+                        {isActive && <span className="text-xs text-cyber-cyan font-mono">● ACTIVE</span>}
+                      </a>
+                    </li>
+                  );
+                })}
+
+                <li className="pt-2">
+                  <a
+                    href="#contact"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full py-3 rounded-md bg-cyber-cyan text-black font-mono font-bold text-xs hover:bg-white transition-all flex items-center justify-center gap-2 tracking-wider uppercase shadow-[0_0_15px_rgba(0,240,255,0.4)]"
+                  >
+                    <span>LET'S TALK / INITIALIZE CONTACT</span>
+                    <ArrowUpRight size={14} />
+                  </a>
+                </li>
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* ============ HERO SECTION ============ */}
